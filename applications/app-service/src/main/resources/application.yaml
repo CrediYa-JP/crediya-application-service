@@ -1,0 +1,22 @@
+##Spring Configuration
+server:
+  port: 8080
+spring:
+  application:
+    name: ApplicationService
+  devtools:
+    add-properties: false
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+adapters:
+  r2dbc:
+    host: "localhost"
+    port: 3295
+    database: "crediya_applications"
+    schema: "crediya_applications"
+    username: "root"
+    password: "root"

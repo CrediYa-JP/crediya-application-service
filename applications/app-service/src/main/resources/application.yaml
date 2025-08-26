@@ -1,17 +1,21 @@
-##Spring Configuration
 server:
   port: 8080
 spring:
   application:
-    name: ApplicationService
+    name: "ApplicationService"
   devtools:
     add-properties: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: "https://idp.example.com/issuer"
+          client-id: "myclientid"
 springdoc:
   api-docs:
-    path: /api-docs
+    path: "/api-docs"
   swagger-ui:
-    path: /swagger-ui.html
-
+    path: "/swagger-ui.html"
 adapters:
   r2dbc:
     host: "localhost"
@@ -20,3 +24,16 @@ adapters:
     schema: "crediya_applications"
     username: "root"
     password: "root"
+jwt:
+  json-exp-roles: "/roles"
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,prometheus"
+  endpoint:
+    health:
+      probes:
+        enabled: true
+cors:
+  allowed-origins: "http://localhost:4200,http://localhost:8080"

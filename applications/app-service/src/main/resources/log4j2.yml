@@ -1,10 +1,17 @@
-name=PropertiesConfig
-property.filename=logs
-appenders=console
-appender.console.type=Console
-appender.console.name=STDOUT
-appender.console.layout.type=PatternLayout
-appender.console.layout.pattern=[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n
-rootLogger.level=debug
-rootLogger.appenderRefs=stdout
-rootLogger.appenderRef.stdout.ref=STDOUT
+Configuration:
+  status: WARN
+  Properties:
+    Property:
+      - name: LOG_PATTERN
+        value: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%X{requestId}] [%t] %-5level %logger{36} - %msg%n"
+  Appenders:
+    Console:
+      name: Console
+      target: SYSTEM_OUT
+      PatternLayout:
+        pattern: ${LOG_PATTERN}
+  Loggers:
+    Root:
+      level: info
+      AppenderRef:
+        - ref: Console

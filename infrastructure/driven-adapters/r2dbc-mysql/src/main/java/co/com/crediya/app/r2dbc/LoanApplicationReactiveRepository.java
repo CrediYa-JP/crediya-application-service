@@ -11,6 +11,4 @@ import java.util.List;
 public interface LoanApplicationReactiveRepository extends ReactiveCrudRepository<LoanApplicationEntity, Long>,
         ReactiveQueryByExampleExecutor<LoanApplicationEntity> {
 
-    @Query("SELECT * FROM loan_applications WHERE state IN (:states)")
-    Flux<LoanApplicationEntity> findByStateIn(List<String> states);
 }

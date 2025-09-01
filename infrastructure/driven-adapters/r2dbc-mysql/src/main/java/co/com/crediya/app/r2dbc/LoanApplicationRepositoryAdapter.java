@@ -12,24 +12,24 @@ import reactor.core.publisher.Mono;
 
 @Repository
 public class LoanApplicationRepositoryAdapter extends ReactiveAdapterOperations<
-           LoanApplication,
-          LoanApplicationEntity,
-                Long,
-                LoanApplicationReactiveRepository
-> implements LoanApplicationRepository {
+        LoanApplication,
+        LoanApplicationEntity,
+        Long,
+        LoanApplicationReactiveRepository
+        > implements LoanApplicationRepository {
 
-        public LoanApplicationRepositoryAdapter(LoanApplicationReactiveRepository repository, ObjectMapper mapper) {
-                super(repository, mapper, entity -> mapper.map(entity, LoanApplication.class));
-        }
+    public LoanApplicationRepositoryAdapter(LoanApplicationReactiveRepository repository, ObjectMapper mapper) {
+        super(repository, mapper, entity -> mapper.map(entity, LoanApplication.class));
+    }
 
-        @Override
-        public Mono<LoanApplication> save(LoanApplication loanApplication) {
-                return super.save(loanApplication);
-        }
+    @Override
+    public Mono<LoanApplication> save(LoanApplication loanApplication) {
+        return super.save(loanApplication);
+    }
 
-        @Override
-        public Mono<LoanApplication> findById(Long applicationId) {
-                return super.findById(applicationId);
-        }
+    @Override
+    public Mono<LoanApplication> findById(Long applicationId) {
+        return super.findById(applicationId);
+    }
 }
 

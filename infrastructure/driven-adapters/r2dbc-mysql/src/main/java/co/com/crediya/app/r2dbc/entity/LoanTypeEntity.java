@@ -1,35 +1,38 @@
 package co.com.crediya.app.r2dbc.entity;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
 import java.math.BigDecimal;
 
-@Entity
-@Table(name = "loan_types")
-@Getter
-@Setter
+@Table("loan_types")
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class LoanTypeEntity {
 
     @Id
-    @Column(name = "loan_type_id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column("loan_type_id")
     private Long loanTypeId;
 
-    @Column(nullable = false, unique = true, length = 100)
+    @Column("name")
     private String name;
 
-    @Column(name = "minimum_amount", precision = 15, scale = 2, nullable = false)
+    @Column("minimum_amount")
     private BigDecimal minimumAmount;
 
-    @Column(name = "maximum_amount", precision = 15, scale = 2, nullable = false)
+    @Column("maximum_amount")
     private BigDecimal maximumAmount;
 
-    @Column(name = "interest_rate", precision = 5, scale = 2, nullable = false)
+    @Column("interest_rate")
     private BigDecimal interestRate;
 
-    @Column(name = "automatic_validation", nullable = false)
+    @Column("automatic_validation")
     private Boolean automaticValidation;
 }

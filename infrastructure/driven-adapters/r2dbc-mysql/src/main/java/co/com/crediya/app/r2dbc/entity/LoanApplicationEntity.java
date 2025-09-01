@@ -32,8 +32,8 @@ public class LoanApplicationEntity {
     @Column("loan_type_id")
     private Long loanTypeId;
 
-    @Column("state")
-    private String state;
+    @Column("state_id")
+    private long stateId;
 
     @Column("user_email")
     private String userEmail;

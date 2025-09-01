@@ -1,0 +1,17 @@
+Configuration:
+  status: WARN
+  Properties:
+    Property:
+      - name: LOG_PATTERN
+        value: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%X{requestId}] [%t] %-5level %logger{36} - %msg%n"
+  Appenders:
+    Console:
+      name: Console
+      target: SYSTEM_OUT
+      PatternLayout:
+        pattern: ${LOG_PATTERN}
+  Loggers:
+    Root:
+      level: info
+      AppenderRef:
+        - ref: Console

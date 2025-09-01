@@ -2,6 +2,7 @@ package co.com.crediya.app.model.exception;
 
 import co.com.crediya.app.model.exception.errorcode.ErrorCode;
 
+
 public abstract class BusinessException extends RuntimeException {
 
     private final ErrorCode errorCode;
@@ -10,6 +11,7 @@ public abstract class BusinessException extends RuntimeException {
         super(errorCode.getDefaultMessage());
         this.errorCode = errorCode;
     }
+
 
     protected BusinessException(ErrorCode errorCode, String customMessage) {
         super(customMessage);

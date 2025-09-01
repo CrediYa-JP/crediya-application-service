@@ -1,15 +1,14 @@
-package co.com.crediya.auth.api.util;
+package co.com.crediya.app.api.util;
 
-import co.com.crediya.auth.api.exception.ValidationException;
-import lombok.NoArgsConstructor;
-import org.springframework.validation.BeanPropertyBindingResult;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.support.WebExchangeBindException;
-import reactor.core.publisher.Mono;
-
+import co.com.crediya.app.api.exception.ValidationException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
+import lombok.NoArgsConstructor;
+import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.validation.FieldError;
+import reactor.core.publisher.Mono;
+
 import java.util.Set;
 
 @NoArgsConstructor

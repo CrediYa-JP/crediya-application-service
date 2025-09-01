@@ -1,4 +1,4 @@
-package co.com.crediya.auth.api.config;
+package co.com.crediya.app.api.config;
 
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;

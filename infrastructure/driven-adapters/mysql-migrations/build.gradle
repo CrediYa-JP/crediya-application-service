@@ -1,0 +1,7 @@
+dependencies {
+    implementation project(':model')
+    implementation 'org.springframework:spring-context'
+    runtimeOnly 'org.flywaydb:flyway-core'
+    runtimeOnly 'org.flywaydb:flyway-mysql'
+    runtimeOnly  'com.mysql:mysql-connector-j:9.1.0'
+}

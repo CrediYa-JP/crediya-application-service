@@ -1,5 +1,6 @@
 package co.com.crediya.app.usecase.loanapplication;
 
+import co.com.crediya.app.model.exception.common.UnauthorizedOperationException;
 import co.com.crediya.app.model.exception.loanapplication.UserNotFoundException;
 import co.com.crediya.app.model.loanapplication.LoanApplication;
 import co.com.crediya.app.model.loanapplication.factory.LoanApplicationFactory;
@@ -21,16 +22,26 @@ public class LoanApplicationUseCase {
     private final LoanTypeRepository loanTypeRepository;
     private final AuthServiceGateway authServiceGateway;
 
-    public Mono<LoanApplication> registerLoanApplication(LoanApplication loanApplication) {
+    public Mono<LoanApplication> registerLoanApplication(LoanApplication loanApplication,
+                                                         String authenticatedEmail) {
         return Mono.zip(
                         validateLoanType(loanApplication.getLoanTypeId()),
-                        validateUser(loanApplication.getUserEmail())
+                        validateUser(loanApplication.getUserIdentityDocument())
                 )
-                .map(tuple -> LoanApplicationFactory.
-                        createPendingApplication(loanApplication, tuple.getT2()))
+                .flatMap(tuple -> {
+                    User user = tuple.getT2();
+                    return validateUserOwnership(user.getEmail(), authenticatedEmail)
+                            .thenReturn(tuple);
+                })
+                .map(tuple -> LoanApplicationFactory.createPendingApplication(loanApplication))
                 .flatMap(loanApplicationRepository::save);
     }
 
+    private Mono<Void> validateUserOwnership(String userEmail, String authenticatedEmail) {
+        return userEmail.equals(authenticatedEmail)
+                ? Mono.empty()
+                : Mono.error(new UnauthorizedOperationException());
+    }
     private Mono<LoanType> validateLoanType(Long loanTypeId) {
         return loanTypeRepository.findById(loanTypeId)
                 .switchIfEmpty(Mono.error(new InvalidLoanTypeException()));

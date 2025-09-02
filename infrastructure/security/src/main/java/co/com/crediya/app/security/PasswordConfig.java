@@ -1,4 +1,4 @@
-package co.com.crediya.auth.security;
+package co.com.crediya.app.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

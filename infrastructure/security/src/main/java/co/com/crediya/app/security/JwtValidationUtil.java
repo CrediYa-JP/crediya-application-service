@@ -1,0 +1,31 @@
+package co.com.crediya.auth.security;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+import java.security.interfaces.RSAPublicKey;
+
+@Component
+@RequiredArgsConstructor
+public class JwtValidationUtil {
+
+    private final RSAPublicKey publicKey;
+
+    public Claims extractAllClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(publicKey)
+                .build()
+                .parseClaimsJws(token)
+                .getPayload();
+    }
+
+    public Long getRoleId(String token) {
+        return extractAllClaims(token).get("roleId", Long.class);
+    }
+
+    public String getEmail(String token) {
+        return extractAllClaims(token).getSubject();
+    }
+}

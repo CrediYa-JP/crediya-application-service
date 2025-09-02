@@ -8,17 +8,13 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public final class LoanApplicationFactory {
 
-    public static LoanApplication createPendingApplication(LoanApplication loanApplication, User user) {
+    public static LoanApplication createPendingApplication(LoanApplication loanApplication) {
         LocalDateTime now = LocalDateTime.now();
-
-        loanApplication.setStateId(1L);
-        loanApplication.setUserEmail(user.getEmail());
-        loanApplication.setUserName(user.getFullName());
-        loanApplication.setUserSalary(user.getSalary());
-        loanApplication.setUserDataSnapshotDate(now);
+        loanApplication.setLoanTypeId(loanApplication.getLoanTypeId());
+        loanApplication.setUserIdentityDocument(loanApplication.getUserIdentityDocument());
         loanApplication.setCreationDate(now);
         loanApplication.setLastModificationDate(now);
-        loanApplication.setStateId(1L); // Estado PENDING_REVIEW
+        loanApplication.setStateId(1L);
 
         return loanApplication;
     }

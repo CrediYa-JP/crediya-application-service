@@ -29,23 +29,14 @@ public class LoanApplicationEntity {
     @Column("term")
     private Integer term;
 
+    @Column("state_id")
+    private Long stateId;
+
     @Column("loan_type_id")
     private Long loanTypeId;
 
-    @Column("state_id")
-    private long stateId;
-
-    @Column("user_email")
-    private String userEmail;
-
-    @Column("user_name")
-    private String userName;
-
-    @Column("user_salary")
-    private BigDecimal userSalary;
-
-    @Column("user_data_snapshot_date")
-    private LocalDateTime userDataSnapshotDate;
+    @Column("user_identity_document")
+    private String userIdentityDocument;
 
     @Column("creation_date")
     private LocalDateTime creationDate;

@@ -9,6 +9,7 @@ dependencies {
     implementation project(':mysql-migrations')
     implementation project(':model')
     implementation project(':usecase')
+    implementation project(':security')
     implementation 'org.springframework.boot:spring-boot-starter'
     runtimeOnly('org.springframework.boot:spring-boot-devtools')
     testImplementation 'com.tngtech.archunit:archunit:1.4.1'

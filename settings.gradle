@@ -28,3 +28,5 @@ include ':rest-consumer'
 project(':rest-consumer').projectDir = file('./infrastructure/driven-adapters/rest-consumer')
 include ':mysql-migrations'
 project(':mysql-migrations').projectDir = file('./infrastructure/driven-adapters/mysql-migrations')
+include ':security'
+project(':security').projectDir = file('./infrastructure/security')

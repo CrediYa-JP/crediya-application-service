@@ -17,8 +17,6 @@ public class LoanApplicationResponse {
     private Long applicationId;
     private BigDecimal amount;
     private Integer term;
-    private String userEmail;
-    private String userName;
     private String status;
     private LocalDateTime creationDate;
 }

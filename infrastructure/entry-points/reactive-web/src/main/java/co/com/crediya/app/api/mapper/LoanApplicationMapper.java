@@ -15,7 +15,7 @@ public final class LoanApplicationMapper {
                 .amount(request.getAmount())
                 .term(request.getTerm())
                 .loanTypeId(request.getLoanTypeId())
-                .userEmail(request.getIdentityDocument()) // Temporal
+                .userIdentityDocument(request.getIdentityDocument())
                 .build();
     }
 
@@ -24,8 +24,6 @@ public final class LoanApplicationMapper {
                 .applicationId(loanApplication.getApplicationId())
                 .amount(loanApplication.getAmount())
                 .term(loanApplication.getTerm())
-                .userEmail(loanApplication.getUserEmail())
-                .userName(loanApplication.getUserName())
                 .status(LoanApplicationState.fromId(loanApplication.getStateId()).name())
                 .creationDate(loanApplication.getCreationDate())
                 .build();

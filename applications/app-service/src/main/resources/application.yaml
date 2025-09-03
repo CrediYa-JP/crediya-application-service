@@ -38,6 +38,9 @@ management:
   health:
     circuitbreakers:
       enabled: true
+jwt:
+  public-key: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyfjjsm7fr6ZGPCPIgPqT/hQ51UIed4L9vPkeYUpfhU4vXSLjzAOOZy3k0qtYuFqT5WpmvOEf6fsUcvM5vOkjcRYwyiXok3B0JOlNwi5IA+UO2Dh0y2ZWNlw1qUxRyXZDuK/cqXEYx1Kpthx+ZIiVp/qzIXfxbFiZgSdjwPRheYKwlhWM6kpZs5UUwo9fVzRq9vk3xpECJ+7fvbZ3Bg3SoSJ3epxhCALrDf78iCr8go+R9RIiD2bWPd3/I0mPain4yuBhU7kCQuIH50UqhoL5S4lEjwH/D3Jjm69mi6SISWjQuJR+Et6VoMRsfWcouriovJFcCKOmBcBB6OFxPStOKQIDAQAB"
+  expiration: 86400000
 cors:
   allowed-origins: "http://localhost:4200,http://localhost:8080"
 adapter:

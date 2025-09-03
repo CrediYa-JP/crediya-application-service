@@ -20,13 +20,16 @@ public class Handler {
     private final LoanApplicationUseCase loanApplicationUseCase;
 
     public Mono<ServerResponse> registerLoanApplication(ServerRequest serverRequest) {
+        String authenticatedEmail = (String) serverRequest.exchange()
+                .getAttributes().get("authenticatedEmail");
 
         return serverRequest.bodyToMono(RegisterLoanApplicationRequest.class)
                 .flatMap(ValidationUtil::validate)
-                .doOnNext(req -> log.info("LOAN_APPLICATION_REGISTER_REQUEST userIdentityDocument={} loanTypeId={}",
-                        req.getIdentityDocument(), req.getLoanTypeId()))
+                .doOnNext(req -> log.info("LOAN_APPLICATION_REQUEST authenticatedEmail={}, requestEmail={}",
+                        authenticatedEmail, req.getIdentityDocument()))
                 .map(LoanApplicationMapper::toDomain)
-                .flatMap(loanApplicationUseCase::registerLoanApplication)
+                .flatMap(loanApplication -> loanApplicationUseCase.registerLoanApplication(
+                        loanApplication, authenticatedEmail))
                 .map(LoanApplicationMapper::toResponse)
                 .flatMap(response -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)

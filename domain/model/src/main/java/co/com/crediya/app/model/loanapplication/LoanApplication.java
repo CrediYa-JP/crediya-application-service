@@ -9,17 +9,13 @@ import java.time.LocalDateTime;
 @Builder(toBuilder = true)
 public class LoanApplication {
     private Long applicationId;
+    private BigDecimal amount;
+    private Integer term;
     private Long stateId;
     private Long loanTypeId;
 
-    private BigDecimal amount;
-    private Integer term;
+    private String userIdentityDocument;
 
-    private String userEmail;
-    private String userName;
-    private BigDecimal userSalary;
-
-    private LocalDateTime userDataSnapshotDate;
     private LocalDateTime creationDate;
     private LocalDateTime lastModificationDate;
 }

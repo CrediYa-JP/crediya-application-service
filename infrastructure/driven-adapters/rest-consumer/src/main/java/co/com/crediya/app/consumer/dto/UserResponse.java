@@ -14,4 +14,5 @@ public class UserResponse {
     private String firstName;
     private String lastName;
     private BigDecimal baseSalary;
+    private String identityDocument;
 }

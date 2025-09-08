@@ -8,16 +8,16 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder(toBuilder = true)
 public class User {
 
     private String email;
     private String firstName;
     private String lastName;
-    private BigDecimal salary;
-
+    private String identityDocument;
+    private BigDecimal baseSalary;
     public String getFullName() {
         return firstName + " " + lastName;
     }

@@ -1,6 +1,8 @@
 package co.com.crediya.app.config;
 
+import co.com.crediya.app.usecase.loanapplication.LoanApplicationUseCase;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,11 +36,16 @@ public class UseCasesConfigTest {
         public MyUseCase myUseCase() {
             return new MyUseCase();
         }
-    }
 
-    static class MyUseCase {
-        public String execute() {
-            return "MyUseCase Test";
+        @Bean
+        LoanApplicationUseCase loanApplicationUseCase() {
+            return Mockito.mock(LoanApplicationUseCase.class);
+        }
+
+        static class MyUseCase {
+            public String execute() {
+                return "MyUseCase Test";
+            }
         }
     }
 }

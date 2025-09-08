@@ -13,6 +13,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class AuthenticationConsumer implements AuthServiceGateway {
@@ -35,6 +37,21 @@ public class AuthenticationConsumer implements AuthServiceGateway {
                 .retrieve()
                 .bodyToMono(UserResponse.class)
                 .map(UserMapConsumer::mapToUser)
+                .onErrorMap(error-> errorHandler.handleServiceError(
+                        ExternalService.AUTHENTICATION, error
+                ));
+    }
+
+    @Override
+    public Mono<List<User>> getUsersByIdentityDocuments(List<String> identityDocuments) {
+        return client
+                .post()
+                .uri(API_V1_USERS + "/retrieve-batch")
+                .bodyValue(identityDocuments)
+                .retrieve()
+                .bodyToFlux(UserResponse.class)
+                .map(UserMapConsumer::mapToUser)
+                .collectList()
                 .onErrorMap(error-> errorHandler.handleServiceError(
                         ExternalService.AUTHENTICATION, error
                 ));

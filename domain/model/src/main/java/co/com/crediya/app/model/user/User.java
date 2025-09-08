@@ -16,8 +16,8 @@ public class User {
     private String email;
     private String firstName;
     private String lastName;
-    private BigDecimal salary;
-
+    private String identityDocument;
+    private BigDecimal baseSalary;
     public String getFullName() {
         return firstName + " " + lastName;
     }

@@ -10,7 +10,8 @@ public class UserMapConsumer {
                 .email(UserResponse.getEmail())
                 .firstName(UserResponse.getFirstName())
                 .lastName(UserResponse.getLastName())
-                .salary(UserResponse.getBaseSalary())
+                .baseSalary(UserResponse.getBaseSalary())
+                .identityDocument(UserResponse.getIdentityDocument())
                 .build();
     }
 }

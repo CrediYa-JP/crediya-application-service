@@ -2,10 +2,10 @@ package co.com.crediya.app.api;
 
 import co.com.crediya.app.api.dto.request.RegisterLoanApplicationRequest;
 import co.com.crediya.app.api.dto.response.EnrichedApplicationResponse;
+import co.com.crediya.app.api.dto.response.PagedResultResponse;
 import co.com.crediya.app.api.mapper.LoanApplicationMapper;
 import co.com.crediya.app.api.util.ValidationUtil;
 import co.com.crediya.app.model.common.PageRequest;
-import co.com.crediya.app.model.common.PagedResult;
 import co.com.crediya.app.usecase.loanapplication.LoanApplicationUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,12 +40,15 @@ public class Handler {
                                     enrichedData.getLoanType()))
                             .toList();
 
-                    return PagedResult.of(
-                            responses,
-                            pagedResult.getPageNumber(),
-                            pagedResult.getPageSize(),
-                            pagedResult.getTotalElements()
-                    );
+                    return PagedResultResponse.<EnrichedApplicationResponse>builder()
+                            .content(responses)
+                            .pageNumber(pagedResult.getPageNumber())
+                            .pageSize(pagedResult.getPageSize())
+                            .totalElements(pagedResult.getTotalElements())
+                            .totalPages(pagedResult.getTotalPages())
+                            .hasNext(pagedResult.isHasNext())
+                            .hasPrevious(pagedResult.isHasPrevious())
+                            .build();
                 })
                 .flatMap(result -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
@@ -68,5 +71,4 @@ public class Handler {
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(response));
     }
-
 }

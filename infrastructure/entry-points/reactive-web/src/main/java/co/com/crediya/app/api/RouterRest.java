@@ -56,7 +56,7 @@ public class RouterRest {
                     )
             ),
             @RouterOperation(
-                    path = "/api/v1/solicitudes",
+                    path = "/api/v1/applications",
                     method = RequestMethod.GET,
                     operation = @Operation(
                             operationId = "getApplicationsForReview",

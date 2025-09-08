@@ -1,8 +1,6 @@
 package co.com.crediya.app.model.exception.constants;
 
-import lombok.NoArgsConstructor;
 
-@NoArgsConstructor
 public final class BusinessErrorCodes {
 
     public static final String INVALID_LOAN_TYPE = "SOL001";

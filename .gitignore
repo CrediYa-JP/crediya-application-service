@@ -334,3 +334,6 @@ gradle-app.setting
 # -----
 *.hprof
 build-cache
+
+# Ignorar perfil local (no subir secretos)
+applications/app-service/src/main/resources/application-local.yaml

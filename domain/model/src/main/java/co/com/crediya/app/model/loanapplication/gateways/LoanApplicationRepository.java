@@ -12,8 +12,12 @@ import java.util.List;
 
 public interface LoanApplicationRepository {
 
+    Mono<LoanApplication>findById(Long id);
     Mono<LoanApplication> save(LoanApplication loanApplication);
 
     Mono<PagedResult<LoanApplication>> findApplicationsForReview(PageRequest pageRequest, String statusFilter);
+
+    Flux<LoanApplication> findApprovedApplicationsByUser(String userIdentityDocument);
+
 
 }

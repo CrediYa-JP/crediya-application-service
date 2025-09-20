@@ -1,20 +1,28 @@
 package co.com.crediya.app.usecase.loanapplication;
 
+import co.com.crediya.app.model.capacityevaluation.CapacityEvaluationMessage;
+import co.com.crediya.app.model.capacityevaluation.gateway.CapacityEvaluationGatway;
 import co.com.crediya.app.model.common.PageRequest;
 import co.com.crediya.app.model.common.PagedResult;
 import co.com.crediya.app.model.exception.common.UnauthorizedOperationException;
-import co.com.crediya.app.model.exception.loanapplication.UserNotFoundException;
+import co.com.crediya.app.model.exception.loanapplication.ApplicationNotFoundException;
 import co.com.crediya.app.model.loanapplication.LoanApplication;
 import co.com.crediya.app.model.loanapplication.factory.LoanApplicationFactory;
 import co.com.crediya.app.model.loanapplication.gateways.LoanApplicationRepository;
 import co.com.crediya.app.model.loantype.LoanType;
 import co.com.crediya.app.model.loantype.gateways.LoanTypeRepository;
 import co.com.crediya.app.model.exception.loanapplication.InvalidLoanTypeException;
+import co.com.crediya.app.model.notifications.gateways.NotificationGateway;
+import co.com.crediya.app.model.state.enums.LoanApplicationState;
 import co.com.crediya.app.model.user.User;
 import co.com.crediya.app.model.user.gateways.AuthServiceGateway;
+import co.com.crediya.app.model.utils.LoanCalculationUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -26,6 +34,9 @@ public class LoanApplicationUseCase {
     private final LoanApplicationRepository loanApplicationRepository;
     private final LoanTypeRepository loanTypeRepository;
     private final AuthServiceGateway authServiceGateway;
+    private final NotificationGateway notificationGateway;
+    private final CapacityEvaluationGatway capacityEvaluationGatway;
+
 
     public Mono<LoanApplication> registerLoanApplication(LoanApplication loanApplication,
                                                          String authenticatedEmail) {
@@ -39,7 +50,8 @@ public class LoanApplicationUseCase {
                             .thenReturn(tuple);
                 })
                 .map(tuple -> LoanApplicationFactory.createPendingApplication(loanApplication))
-                .flatMap(loanApplicationRepository::save);
+                .flatMap(loanApplicationRepository::save)
+                .flatMap(this::processAutomaticValidation);
     }
 
     private Mono<Void> validateUserOwnership(String userEmail, String authenticatedEmail) {
@@ -62,6 +74,58 @@ public class LoanApplicationUseCase {
                 .flatMap(this::enrichApplicationsWithExternalData);
     }
 
+    // NUEVO MÉTODO - Lógica de validación automática
+    private Mono<LoanApplication> processAutomaticValidation(LoanApplication savedApplication) {
+        return loanTypeRepository.findById(savedApplication.getLoanTypeId())
+                .filter(LoanType::getAutomaticValidation)
+                .flatMap(loanType -> triggerCapacityEvaluation(savedApplication, loanType))
+                .thenReturn(savedApplication);
+    }
+    private Mono<Void> triggerCapacityEvaluation(LoanApplication application, LoanType loanType) {
+        return authServiceGateway.getUserByIdentityDocument(application.getUserIdentityDocument())
+                .flatMap(user -> calculateCurrentMonthlyDebt(application.getUserIdentityDocument())
+                        .map(currentDebt -> buildCapacityEvaluationMessage(application, loanType, user, currentDebt)))
+                .flatMap(capacityEvaluationGatway::sendForEvaluation);
+    }
+
+    // NUEVO MÉTODO - Calcular deuda mensual actual (reutiliza lógica HU-4)
+    private Mono<BigDecimal> calculateCurrentMonthlyDebt(String identityDocument) {
+        return loanApplicationRepository.findApprovedApplicationsByUser(identityDocument)
+                .flatMap(this::enrichWithLoanTypeData)
+                .map(this::calculateMonthlyPayment)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+    private Mono<EnrichedApplicationData> enrichWithLoanTypeData(LoanApplication application) {
+        return loanTypeRepository.findById(application.getLoanTypeId())
+                .map(loanType -> EnrichedApplicationData.builder()
+                        .application(application)
+                        .loanType(loanType)
+                        .build());
+    }
+
+    // NUEVO MÉTODO - Calcular cuota mensual (reutiliza utilidad existente)
+    private BigDecimal calculateMonthlyPayment(EnrichedApplicationData enrichedData) {
+        return LoanCalculationUtil.calculateMonthlyPayment(
+                enrichedData.getApplication().getAmount(),
+                enrichedData.getLoanType().getInterestRate(),
+                enrichedData.getApplication().getTerm());
+    }
+
+    // NUEVO MÉTODO - Construir mensaje para Lambda
+    private CapacityEvaluationMessage buildCapacityEvaluationMessage(LoanApplication application,
+                                                                     LoanType loanType,
+                                                                     User user,
+                                                                     BigDecimal currentDebt) {
+        return CapacityEvaluationMessage.builder()
+                .applicationId(application.getApplicationId())
+                .userIdentityDocument(application.getUserIdentityDocument())
+                .userBaseSalary(user.getBaseSalary())
+                .currentMonthlyDebt(currentDebt)
+                .newLoanAmount(application.getAmount())
+                .newLoanTerm(application.getTerm())
+                .newLoanInterestRate(loanType.getInterestRate())
+                .build();
+    }
 
     private Mono<PagedResult<EnrichedApplicationData>> enrichApplicationsWithExternalData(PagedResult<LoanApplication> pagedApplications) {
         List<LoanApplication> applications = pagedApplications.getContent();
@@ -122,5 +186,37 @@ public class LoanApplicationUseCase {
                 .user(user)
                 .loanType(loanType)
                 .build();
+    }
+
+
+    public Mono<LoanApplication> updateApplicationStatus(Long applicationId, LoanApplicationState newStatus) {
+        return loanApplicationRepository.findById(applicationId)
+                .switchIfEmpty(Mono.error(new ApplicationNotFoundException(applicationId)))
+                .flatMap(application -> {
+                    LoanApplication updatedApplication = application.toBuilder()
+                            .stateId(newStatus.getId())
+                            .lastModificationDate(LocalDateTime.now())
+                            .build();
+
+                    return loanApplicationRepository.save(updatedApplication)
+                            .flatMap(savedApp -> sendNotificationIfNeeded(savedApp, newStatus)
+                                    .then(Mono.just(savedApp)));
+                });
+    }
+
+    private Mono<Void> sendNotificationIfNeeded(LoanApplication application, LoanApplicationState status) {
+        return Mono.just(status)
+                .filter(s -> s == LoanApplicationState.APPROVED || s == LoanApplicationState.REJECTED)
+                .flatMap(s -> authServiceGateway.getUserByIdentityDocument(application.getUserIdentityDocument())
+                        .flatMap(user -> notificationGateway.sendApplicationStatusNotification(
+                                application.getApplicationId(),
+                                user.getEmail(),
+                                user.getFirstName() + " " + user.getLastName(),
+                                status.name(),
+                                application.getAmount(),
+                                application.getTerm()
+                        )))
+                .onErrorMap(e -> new RuntimeException("Failed to send notification for applicationId=" + application.getApplicationId(), e))
+                .then();
     }
 }

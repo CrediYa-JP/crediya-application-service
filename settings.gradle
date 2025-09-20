@@ -30,3 +30,7 @@ include ':mysql-migrations'
 project(':mysql-migrations').projectDir = file('./infrastructure/driven-adapters/mysql-migrations')
 include ':security'
 project(':security').projectDir = file('./infrastructure/security')
+include ':metrics'
+project(':metrics').projectDir = file('./infrastructure/helpers/metrics')
+include ':sqs-sender'
+project(':sqs-sender').projectDir = file('./infrastructure/driven-adapters/sqs-sender')

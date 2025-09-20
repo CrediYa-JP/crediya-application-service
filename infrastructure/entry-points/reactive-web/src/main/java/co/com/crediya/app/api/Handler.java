@@ -1,6 +1,7 @@
 package co.com.crediya.app.api;
 
 import co.com.crediya.app.api.dto.request.RegisterLoanApplicationRequest;
+import co.com.crediya.app.api.dto.request.UpdateApplicationStatusRequest;
 import co.com.crediya.app.api.dto.response.EnrichedApplicationResponse;
 import co.com.crediya.app.api.dto.response.PagedResultResponse;
 import co.com.crediya.app.api.mapper.LoanApplicationMapper;
@@ -67,6 +68,21 @@ public class Handler {
                 .flatMap(loanApplication -> loanApplicationUseCase.registerLoanApplication(
                         loanApplication, authenticatedEmail))
                 .map(LoanApplicationMapper::toResponse)
+                .flatMap(response -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(response));
+    }
+    public Mono<ServerResponse> updateApplicationStatus(ServerRequest serverRequest) {
+        String applicationId = serverRequest.pathVariable("id");
+
+        return serverRequest.bodyToMono(UpdateApplicationStatusRequest.class)
+                .flatMap(ValidationUtil::validate)
+                .doOnNext(req -> log.info("UPDATE_APPLICATION_STATUS applicationId={}, status={}",
+                        applicationId, req.getStatus()))
+                .flatMap(request -> loanApplicationUseCase.updateApplicationStatus(
+                        Long.valueOf(applicationId),
+                        request.getLoanApplicationState()))
+                .map(LoanApplicationMapper::toUpdateStatusResponse)
                 .flatMap(response -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(response));

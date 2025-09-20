@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class EnrichedApplicationResponse {
 
+    private Long applicationId;
     private BigDecimal amount;
     private Integer term;
     private String email;

@@ -10,7 +10,10 @@ import co.com.crediya.app.r2dbc.helper.ReactiveAdapterOperations;
 import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.relational.core.query.Criteria;
+import org.springframework.data.relational.core.query.Query;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -54,6 +57,11 @@ public class LoanApplicationRepositoryAdapter extends ReactiveAdapterOperations<
                         domainPageRequest.getSize(),
                         tuple.getT2()
                 ));
+    }
+    @Override
+    public Flux<LoanApplication> findApprovedApplicationsByUser(String userIdentityDocument) {
+        return repository.findByUserIdentityDocumentAndStateId(userIdentityDocument, 2L)
+                .map(this::toEntity);
     }
 
     private List<Long> getFilteredStateIds(String statusFilter) {

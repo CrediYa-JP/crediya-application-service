@@ -96,6 +96,10 @@ public class RouterRest {
                         .and(accept(MediaType.APPLICATION_JSON))
                         .and(contentType(MediaType.APPLICATION_JSON)),
                 handler::registerLoanApplication)
-                .andRoute(GET(API_V1_APPLICATIONS), handler::getApplicationsForReview);
+                .andRoute(GET(API_V1_APPLICATIONS), handler::getApplicationsForReview)
+                .andRoute(PUT(API_V1_APPLICATIONS + "/{id}")
+                                .and(accept(MediaType.APPLICATION_JSON))
+                                .and(contentType(MediaType.APPLICATION_JSON)),
+                        handler::updateApplicationStatus);
     }
 }

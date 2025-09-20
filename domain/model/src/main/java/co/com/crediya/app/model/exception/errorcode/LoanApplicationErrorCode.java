@@ -5,6 +5,8 @@ import co.com.crediya.app.model.exception.constants.BusinessErrorMessages;
 
 public enum LoanApplicationErrorCode  implements ErrorCode {
       INVALID_LOAN_TYPE(BusinessErrorCodes.INVALID_LOAN_TYPE, BusinessErrorMessages.INVALID_LOAN_TYPE_MSG),
+
+     APPLICATION_NOT_FOUND(BusinessErrorCodes.APPLICATION_NOT_FOUND, BusinessErrorMessages.APPLICATION_NOT_FOUND_MSG),
       USER_NOT_FOUND(BusinessErrorCodes.USER_NOT_FOUND, BusinessErrorMessages.USER_NOT_FOUND_MSG);
 
     private final String code;

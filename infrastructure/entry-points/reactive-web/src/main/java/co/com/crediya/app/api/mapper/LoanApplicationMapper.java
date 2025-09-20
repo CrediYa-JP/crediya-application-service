@@ -3,6 +3,7 @@ package co.com.crediya.app.api.mapper;
 import co.com.crediya.app.api.dto.request.RegisterLoanApplicationRequest;
 import co.com.crediya.app.api.dto.response.EnrichedApplicationResponse;
 import co.com.crediya.app.api.dto.response.LoanApplicationResponse;
+import co.com.crediya.app.api.dto.response.UpdateApplicationStatusResponse;
 import co.com.crediya.app.model.loanapplication.LoanApplication;
 import co.com.crediya.app.model.loanapplication.constants.ApplicationState;
 import co.com.crediya.app.model.loantype.LoanType;
@@ -46,6 +47,7 @@ public final class LoanApplicationMapper {
                 application.getTerm());
 
         return EnrichedApplicationResponse.builder()
+                .applicationId(application.getApplicationId())
                 .amount(application.getAmount())
                 .term(application.getTerm())
                 .email(user.getEmail())
@@ -57,6 +59,14 @@ public final class LoanApplicationMapper {
                 .monthlyPayment(monthlyPayment)
                 .creationDate(application.getCreationDate())
                 .build();
+    }
+
+    public static UpdateApplicationStatusResponse toUpdateStatusResponse(LoanApplication application) {
+        return new UpdateApplicationStatusResponse(
+                application.getApplicationId(),
+                LoanApplicationState.fromId(application.getStateId()).name(),
+                application.getLastModificationDate()
+        );
     }
 
 }

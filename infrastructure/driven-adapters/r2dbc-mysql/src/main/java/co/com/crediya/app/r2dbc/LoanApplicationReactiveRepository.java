@@ -17,4 +17,7 @@ public interface LoanApplicationReactiveRepository extends ReactiveCrudRepositor
     Flux<LoanApplicationEntity> findByStateIdInOrderByCreationDateDesc(List<Long> stateIds, Pageable pageable);
 
     Mono<Long> countByStateIdIn(List<Long> stateIds);
+
+    Flux<LoanApplicationEntity> findByUserIdentityDocumentAndStateId(String userIdentityDocument, Long stateId);
+
 }

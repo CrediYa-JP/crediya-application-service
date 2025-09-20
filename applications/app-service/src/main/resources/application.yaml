@@ -6,22 +6,22 @@ spring:
   devtools:
     add-properties: false
   flyway:
-    enabled: ${FLYWAY_ENABLED:true}
+    enabled: "${FLYWAY_ENABLED:true}"
     url: "jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:crediya_applications}"
     user: "${DB_USERNAME}"
     password: "${DB_PASSWORD}"
     locations: "${FLYWAY_LOCATIONS:classpath:db/migration}"
 springdoc:
   api-docs:
-    path: /api-docs
+    path: "/api-docs"
   swagger-ui:
-    path: /swagger-ui.html
+    path: "/swagger-ui.html"
   webjars:
-    prefix: /webjars
+    prefix: "/webjars"
 adapters:
   r2dbc:
     host: "${DB_HOST:localhost}"
-    port: ${DB_PORT:3306}
+    port: "${DB_PORT:3306}"
     database: "${DB_NAME:crediya_applications}"
     schema: "${DB_SCHEMA:crediya_applications}"
     username: "${DB_USERNAME}"
@@ -45,13 +45,16 @@ cors:
   allowed-origins: "${CORS_ALLOWED_ORIGINS:http://localhost:4200,http://localhost:8080}"
 adapter:
   auth-service:
-    timeout: ${AUTH_SERVICE_TIMEOUT:5000}
+    timeout: "${AUTH_SERVICE_TIMEOUT:5000}"
     url: "${AUTH_SERVICE_URL:http://localhost:8080}"
+  sqs:
+    region: "us-east-1"
+    queueUrl: "http://localhost:4566/000000000000/sample"
+    endpoint: "http://localhost:4566 # For localstack only"
 logging:
   level:
-    co.com.crediya: INFO
-    org.springframework.web: INFO
-
+    co.com.crediya: "INFO"
+    org.springframework.web: "INFO"
 resilience4j:
   circuitbreaker:
     instances:

@@ -2,11 +2,12 @@ package co.com.crediya.app.sqs;
 
 import co.com.crediya.app.model.capacityevaluation.CapacityEvaluationMessage;
 
-import co.com.crediya.app.model.capacityevaluation.gateway.CapacityEvaluationGatway;
+import co.com.crediya.app.model.capacityevaluation.gateway.CapacityEvaluationGateway;
 import co.com.crediya.app.sqs.sender.config.CapacityEvaluationSQSProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
@@ -15,14 +16,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 @Component
-@RequiredArgsConstructor
 @Slf4j
-public class CapacityEvaluationSQSAdapter implements CapacityEvaluationGatway {
+public class CapacityEvaluationSQSAdapter implements CapacityEvaluationGateway {
 
     private final SqsAsyncClient sqsAsyncClient;
     private final CapacityEvaluationSQSProperties properties;
     private final ObjectMapper objectMapper;
 
+    public CapacityEvaluationSQSAdapter(@Qualifier("capacityEvaluationSqsClient") SqsAsyncClient sqsAsyncClient,
+                                        CapacityEvaluationSQSProperties properties,
+                                        ObjectMapper objectMapper) {
+        this.sqsAsyncClient = sqsAsyncClient;
+        this.properties = properties;
+        this.objectMapper = objectMapper;
+    }
     @Override
     public Mono<Void> sendForEvaluation(CapacityEvaluationMessage message) {
         return Mono.fromCallable(() -> convertToJson(message))

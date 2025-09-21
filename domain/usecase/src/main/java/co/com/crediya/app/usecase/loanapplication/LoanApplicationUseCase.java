@@ -1,7 +1,9 @@
 package co.com.crediya.app.usecase.loanapplication;
 
 import co.com.crediya.app.model.capacityevaluation.CapacityEvaluationMessage;
-import co.com.crediya.app.model.capacityevaluation.gateway.CapacityEvaluationGatway;
+import co.com.crediya.app.model.capacityevaluation.CapacityEvaluationResponse;
+import co.com.crediya.app.model.capacityevaluation.gateway.CapacityEvaluationGateway;
+import co.com.crediya.app.model.capacityevaluation.gateway.CapacityResponseGateway;
 import co.com.crediya.app.model.common.PageRequest;
 import co.com.crediya.app.model.common.PagedResult;
 import co.com.crediya.app.model.exception.common.UnauthorizedOperationException;
@@ -18,7 +20,6 @@ import co.com.crediya.app.model.user.User;
 import co.com.crediya.app.model.user.gateways.AuthServiceGateway;
 import co.com.crediya.app.model.utils.LoanCalculationUtil;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
@@ -35,7 +36,9 @@ public class LoanApplicationUseCase {
     private final LoanTypeRepository loanTypeRepository;
     private final AuthServiceGateway authServiceGateway;
     private final NotificationGateway notificationGateway;
-    private final CapacityEvaluationGatway capacityEvaluationGatway;
+    private final CapacityEvaluationGateway capacityEvaluationGateway;
+    private final CapacityResponseGateway capacityResponseGateway;
+
 
 
     public Mono<LoanApplication> registerLoanApplication(LoanApplication loanApplication,
@@ -85,7 +88,7 @@ public class LoanApplicationUseCase {
         return authServiceGateway.getUserByIdentityDocument(application.getUserIdentityDocument())
                 .flatMap(user -> calculateCurrentMonthlyDebt(application.getUserIdentityDocument())
                         .map(currentDebt -> buildCapacityEvaluationMessage(application, loanType, user, currentDebt)))
-                .flatMap(capacityEvaluationGatway::sendForEvaluation);
+                .flatMap(capacityEvaluationGateway::sendForEvaluation);
     }
 
     // NUEVO MÉTODO - Calcular deuda mensual actual (reutiliza lógica HU-4)
@@ -103,15 +106,13 @@ public class LoanApplicationUseCase {
                         .build());
     }
 
-    // NUEVO MÉTODO - Calcular cuota mensual (reutiliza utilidad existente)
+
     private BigDecimal calculateMonthlyPayment(EnrichedApplicationData enrichedData) {
         return LoanCalculationUtil.calculateMonthlyPayment(
                 enrichedData.getApplication().getAmount(),
                 enrichedData.getLoanType().getInterestRate(),
                 enrichedData.getApplication().getTerm());
     }
-
-    // NUEVO MÉTODO - Construir mensaje para Lambda
     private CapacityEvaluationMessage buildCapacityEvaluationMessage(LoanApplication application,
                                                                      LoanType loanType,
                                                                      User user,
@@ -218,5 +219,54 @@ public class LoanApplicationUseCase {
                         )))
                 .onErrorMap(e -> new RuntimeException("Failed to send notification for applicationId=" + application.getApplicationId(), e))
                 .then();
+    }
+
+
+
+    // This is a polling strategie for the last lamda response
+    public Mono<Void> processCapacityResponses() {
+        return capacityResponseGateway.pollForResponses()
+                .flatMap(this::processResponse)
+                .then();
+    }
+
+    private Mono<Void> processResponse(CapacityEvaluationResponse response) {
+        return updateApplicationState(response)
+                .flatMap(application -> sendNotificationIfNeeded(response))
+                .then();
+    }
+
+    private Mono<LoanApplication> updateApplicationState(CapacityEvaluationResponse response) {
+        Long newStateId = mapDecisionToStateId(response.getDecision());
+
+        return loanApplicationRepository.findById(response.getApplicationId())
+                .map(application -> application.toBuilder().stateId(newStateId).build())
+                .flatMap(loanApplicationRepository::save);
+    }
+
+    private Mono<Void> sendNotificationIfNeeded(CapacityEvaluationResponse response) {
+        if ("APPROVED".equals(response.getDecision()) || "REJECTED".equals(response.getDecision())) {
+            return loanApplicationRepository.findById(response.getApplicationId())
+                    .flatMap(application -> authServiceGateway.getUserByIdentityDocument(application.getUserIdentityDocument()))
+                    .flatMap(user -> notificationGateway.sendApplicationStatusWithPaymentPlan(
+                            response.getApplicationId(),
+                            user.getEmail(),
+                            user.getFirstName() + " " + user.getLastName(),
+                            response.getDecision(),
+                            response.getNewLoanPayment(),
+                            null,
+                            response.getPaymentPlan()
+                    ));
+        }
+        return Mono.empty();
+    }
+
+    private Long mapDecisionToStateId(String decision) {
+        return switch (decision) {
+            case "APPROVED" -> LoanApplicationState.APPROVED.getId();
+            case "REJECTED" -> LoanApplicationState.REJECTED.getId();
+            case "MANUAL_REVIEW" -> LoanApplicationState.MANUAL_REVIEW.getId();
+            default -> LoanApplicationState.PENDING_REVIEW.getId();
+        };
     }
 }

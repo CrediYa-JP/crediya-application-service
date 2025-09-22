@@ -14,6 +14,7 @@ import co.com.crediya.app.model.loanapplication.gateways.LoanApplicationReposito
 import co.com.crediya.app.model.loantype.LoanType;
 import co.com.crediya.app.model.loantype.gateways.LoanTypeRepository;
 import co.com.crediya.app.model.exception.loanapplication.InvalidLoanTypeException;
+import co.com.crediya.app.model.notifications.gateways.DirectEmailGateway;
 import co.com.crediya.app.model.notifications.gateways.NotificationGateway;
 import co.com.crediya.app.model.state.enums.LoanApplicationState;
 import co.com.crediya.app.model.user.User;
@@ -38,6 +39,7 @@ public class LoanApplicationUseCase {
     private final NotificationGateway notificationGateway;
     private final CapacityEvaluationGateway capacityEvaluationGateway;
     private final CapacityResponseGateway capacityResponseGateway;
+    private final DirectEmailGateway directEmailGateway;
 
 
 
@@ -245,20 +247,26 @@ public class LoanApplicationUseCase {
     }
 
     private Mono<Void> sendNotificationIfNeeded(CapacityEvaluationResponse response) {
-        if ("APPROVED".equals(response.getDecision()) || "REJECTED".equals(response.getDecision())) {
-            return loanApplicationRepository.findById(response.getApplicationId())
-                    .flatMap(application -> authServiceGateway.getUserByIdentityDocument(application.getUserIdentityDocument()))
-                    .flatMap(user -> notificationGateway.sendApplicationStatusWithPaymentPlan(
-                            response.getApplicationId(),
-                            user.getEmail(),
-                            user.getFirstName() + " " + user.getLastName(),
-                            response.getDecision(),
-                            response.getNewLoanPayment(),
-                            null,
-                            response.getPaymentPlan()
-                    ));
-        }
-        return Mono.empty();
+        return Mono.just(response.getDecision())
+                .filter(decision -> "APPROVED".equals(decision) || "REJECTED".equals(decision))
+                .flatMap(decision -> processEmailNotification(response))
+                .switchIfEmpty(Mono.empty())
+                .then();
+    }
+
+    private Mono<Void> processEmailNotification(CapacityEvaluationResponse response) {
+        return loanApplicationRepository.findById(response.getApplicationId())
+                .flatMap(application ->
+                        authServiceGateway.getUserByIdentityDocument(application.getUserIdentityDocument())
+                                .flatMap(user -> directEmailGateway.sendLoanDecisionWithPaymentPlan(
+                                        user.getEmail(),
+                                        user.getFirstName() + " " + user.getLastName(),
+                                        response.getDecision(),
+                                        application.getAmount(),
+                                        application.getTerm(),
+                                        response.getPaymentPlan()
+                                ))
+                );
     }
 
     private Long mapDecisionToStateId(String decision) {

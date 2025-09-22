@@ -1,0 +1,17 @@
+dependencies {
+    implementation project(':model')
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework:spring-context'
+    implementation 'io.projectreactor:reactor-core'
+
+    // AWS SES SDK v2
+    implementation 'software.amazon.awssdk:ses:2.20.162'
+    implementation 'software.amazon.awssdk:auth:2.20.162'
+    implementation 'software.amazon.awssdk:regions:2.20.162'
+
+    // JSON processing
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+    // Logging
+    implementation 'org.slf4j:slf4j-api'
+}

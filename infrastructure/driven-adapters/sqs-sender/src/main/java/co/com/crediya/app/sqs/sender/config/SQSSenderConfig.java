@@ -19,7 +19,6 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
 import java.net.URI;
 
 @Configuration
-@ConditionalOnMissingBean(SqsAsyncClient.class)
 public class SQSSenderConfig {
 
     @Bean

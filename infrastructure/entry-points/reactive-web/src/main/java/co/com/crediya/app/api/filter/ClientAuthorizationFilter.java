@@ -67,7 +67,6 @@ public class ClientAuthorizationFilter implements WebFilter {
                 throw new RuntimeException("Access denied - Client role required");
             }
 
-            // Agregar email autenticado al contexto para el UseCase
             exchange.getAttributes().put("authenticatedEmail", email);
             log.info("CLIENT_AUTHORIZED email={}", email);
 

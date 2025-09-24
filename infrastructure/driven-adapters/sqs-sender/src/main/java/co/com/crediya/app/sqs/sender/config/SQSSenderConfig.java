@@ -3,6 +3,7 @@ package co.com.crediya.app.sqs.sender.config;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
 import software.amazon.awssdk.auth.credentials.ContainerCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
@@ -18,10 +19,10 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
 import java.net.URI;
 
 @Configuration
-@ConditionalOnMissingBean(SqsAsyncClient.class)
 public class SQSSenderConfig {
 
     @Bean
+    @Primary
     public SqsAsyncClient configSqs(SQSSenderProperties properties, MetricPublisher publisher) {
         SqsAsyncClientBuilder builder = SqsAsyncClient.builder()
                 .region(Region.of(properties.region()))

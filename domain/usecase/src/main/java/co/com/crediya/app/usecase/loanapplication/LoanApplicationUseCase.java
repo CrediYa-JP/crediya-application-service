@@ -79,7 +79,6 @@ public class LoanApplicationUseCase {
                 .flatMap(this::enrichApplicationsWithExternalData);
     }
 
-    // NUEVO MÉTODO - Lógica de validación automática
     private Mono<LoanApplication> processAutomaticValidation(LoanApplication savedApplication) {
         return loanTypeRepository.findById(savedApplication.getLoanTypeId())
                 .filter(LoanType::getAutomaticValidation)
@@ -93,7 +92,6 @@ public class LoanApplicationUseCase {
                 .flatMap(capacityEvaluationGateway::sendForEvaluation);
     }
 
-    // NUEVO MÉTODO - Calcular deuda mensual actual (reutiliza lógica HU-4)
     private Mono<BigDecimal> calculateCurrentMonthlyDebt(String identityDocument) {
         return loanApplicationRepository.findApprovedApplicationsByUser(identityDocument)
                 .flatMap(this::enrichWithLoanTypeData)

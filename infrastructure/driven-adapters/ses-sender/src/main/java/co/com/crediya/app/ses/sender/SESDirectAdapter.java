@@ -63,7 +63,6 @@ public class SESDirectAdapter implements DirectEmailGateway {
         ).map(SendEmailResponse::messageId);
     }
 
-    // ✅ Método para formatear números
     private String formatCurrency(BigDecimal amount) {
         if (amount == null) return "0.00";
         DecimalFormat formatter = new DecimalFormat("#,##0.00");

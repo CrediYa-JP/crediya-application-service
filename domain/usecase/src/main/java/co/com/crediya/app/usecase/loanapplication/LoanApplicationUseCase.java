@@ -6,6 +6,8 @@ import co.com.crediya.app.model.capacityevaluation.gateway.CapacityEvaluationGat
 import co.com.crediya.app.model.capacityevaluation.gateway.CapacityResponseGateway;
 import co.com.crediya.app.model.common.PageRequest;
 import co.com.crediya.app.model.common.PagedResult;
+import co.com.crediya.app.model.events.LoanApprovalEvent;
+import co.com.crediya.app.model.events.gateways.LoanEventPublisher;
 import co.com.crediya.app.model.exception.common.UnauthorizedOperationException;
 import co.com.crediya.app.model.exception.loanapplication.ApplicationNotFoundException;
 import co.com.crediya.app.model.loanapplication.LoanApplication;
@@ -40,6 +42,8 @@ public class LoanApplicationUseCase {
     private final CapacityEvaluationGateway capacityEvaluationGateway;
     private final CapacityResponseGateway capacityResponseGateway;
     private final DirectEmailGateway directEmailGateway;
+    private final LoanEventPublisher loanEventPublisher;
+
 
 
 
@@ -189,20 +193,61 @@ public class LoanApplicationUseCase {
                 .build();
     }
 
-
     public Mono<LoanApplication> updateApplicationStatus(Long applicationId, LoanApplicationState newStatus) {
         return loanApplicationRepository.findById(applicationId)
                 .switchIfEmpty(Mono.error(new ApplicationNotFoundException(applicationId)))
-                .flatMap(application -> {
-                    LoanApplication updatedApplication = application.toBuilder()
-                            .stateId(newStatus.getId())
-                            .lastModificationDate(LocalDateTime.now())
-                            .build();
+                .flatMap(application -> updateAndSaveApplication(application, newStatus))
+                .flatMap(savedApplication -> processStatusChange(savedApplication, newStatus));
+    }
 
-                    return loanApplicationRepository.save(updatedApplication)
-                            .flatMap(savedApp -> sendNotificationIfNeeded(savedApp, newStatus)
-                                    .then(Mono.just(savedApp)));
-                });
+    private Mono<LoanApplication> updateAndSaveApplication(LoanApplication application, LoanApplicationState newStatus) {
+        LoanApplication updatedApplication = application.toBuilder()
+                .stateId(newStatus.getId())
+                .lastModificationDate(LocalDateTime.now())
+                .build();
+
+        return loanApplicationRepository.save(updatedApplication);
+    }
+
+    private Mono<LoanApplication> processStatusChange(LoanApplication application, LoanApplicationState status) {
+        return Mono.just(status)
+                .filter(s -> s == LoanApplicationState.APPROVED || s == LoanApplicationState.REJECTED)
+                .flatMap(s -> authServiceGateway.getUserByIdentityDocument(application.getUserIdentityDocument())
+                        .flatMap(user -> Mono.when(
+                                publishLoanEventIfApproved(application, user, s),
+                                sendUserNotification(application, user, s)
+                        )))
+                .thenReturn(application)
+                .onErrorReturn(application);
+    }
+
+    private Mono<Void> publishLoanEventIfApproved(LoanApplication application, User user, LoanApplicationState status) {
+        return Mono.just(status)
+                .filter(s -> s == LoanApplicationState.APPROVED)
+                .map(s -> buildLoanApprovalEvent(application, user))
+                .flatMap(loanEventPublisher::publishLoanApprovalEvent)
+                .switchIfEmpty(Mono.empty());
+    }
+
+    private LoanApprovalEvent buildLoanApprovalEvent(LoanApplication application, User user) {
+        return LoanApprovalEvent.builder()
+                .applicationId(application.getApplicationId())
+                .amount(application.getAmount())
+                .decision(LoanApplicationState.APPROVED.name())
+                .timestamp(LocalDateTime.now())
+                .userEmail(user.getEmail())
+                .build();
+    }
+
+    private Mono<Void> sendUserNotification(LoanApplication application, User user, LoanApplicationState status) {
+        return notificationGateway.sendApplicationStatusNotification(
+                application.getApplicationId(),
+                user.getEmail(),
+                user.getFirstName() + " " + user.getLastName(),
+                status.name(),
+                application.getAmount(),
+                application.getTerm()
+        );
     }
 
     private Mono<Void> sendNotificationIfNeeded(LoanApplication application, LoanApplicationState status) {
@@ -223,7 +268,6 @@ public class LoanApplicationUseCase {
 
 
 
-    // This is a polling strategie for the last lamda response
     public Mono<Void> processCapacityResponses() {
         return capacityResponseGateway.pollForResponses()
                 .flatMap(this::processResponse)

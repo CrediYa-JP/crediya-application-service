@@ -298,16 +298,14 @@ public class LoanApplicationUseCase {
 
     private Mono<Void> processEmailNotification(CapacityEvaluationResponse response) {
         return loanApplicationRepository.findById(response.getApplicationId())
-                .flatMap(application ->
-                        authServiceGateway.getUserByIdentityDocument(application.getUserIdentityDocument())
-                                .flatMap(user -> directEmailGateway.sendLoanDecisionWithPaymentPlan(
-                                        user.getEmail(),
-                                        user.getFirstName() + " " + user.getLastName(),
+                .flatMap(application -> directEmailGateway.sendLoanDecisionWithPaymentPlan(
+                                        "jesu102012@gmail.com",
+                                        "user.getFirstName() "+ " " + "user.getLastName()",
                                         response.getDecision(),
                                         application.getAmount(),
                                         application.getTerm(),
                                         response.getPaymentPlan()
-                                ))
+                                )
                 );
     }
 

@@ -19,7 +19,7 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class ApprovalAuthorizationFilter implements WebFilter {
 
-    private static final Long ADVISOR_ROLE_ID = 2L;
+    private static final String ADVISOR_ROLE = "ROLE_ADVISOR";
     private final JwtValidationUtil jwtValidationUtil;
 
     @Override
@@ -54,8 +54,8 @@ public class ApprovalAuthorizationFilter implements WebFilter {
     }
 
     private Mono<Void> validateTokenAndRole(String token) {
-        return Mono.fromCallable(() -> jwtValidationUtil.getRoleId(token))
-                .filter(ADVISOR_ROLE_ID::equals)
+        return Mono.fromCallable(() -> jwtValidationUtil.getRole(token))
+                .filter(ADVISOR_ROLE::equals)
                 .switchIfEmpty(Mono.error(new RuntimeException("Access denied - Advisor role required")))
                 .doOnNext(roleId -> log.info("ADVISOR_AUTHORIZED roleId={}", roleId))
                 .then();

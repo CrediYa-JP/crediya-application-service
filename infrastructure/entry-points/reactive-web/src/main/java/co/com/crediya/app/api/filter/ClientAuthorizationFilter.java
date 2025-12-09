@@ -19,7 +19,7 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class ClientAuthorizationFilter implements WebFilter {
 
-    private static final Long CLIENT_ROLE_ID = 1L;
+    private static final String CLIENT_ROLE = "ROLE_CUSTOMER";
     private final JwtValidationUtil jwtValidationUtil;
 
     @Override
@@ -60,10 +60,10 @@ public class ClientAuthorizationFilter implements WebFilter {
 
     private Mono<String> validateTokenAndExtractEmail(String token, ServerWebExchange exchange) {
         return Mono.fromCallable(() -> {
-            Long roleId = jwtValidationUtil.getRoleId(token);
+            String role = jwtValidationUtil.getRole(token);
             String email = jwtValidationUtil.getEmail(token);
 
-            if (!CLIENT_ROLE_ID.equals(roleId)) {
+            if (!CLIENT_ROLE.equals(role)) {
                 throw new RuntimeException("Access denied - Client role required");
             }
 

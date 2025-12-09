@@ -21,8 +21,8 @@ public class JwtValidationUtil {
                 .getPayload();
     }
 
-    public Long getRoleId(String token) {
-        return extractAllClaims(token).get("roleId", Long.class);
+    public String getRole(String token) {
+        return extractAllClaims(token).get("scope", String.class);
     }
 
     public String getEmail(String token) {
